@@ -1,0 +1,208 @@
+/* Google Font for a cleaner look */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --bg: #f4f7fb;
+    --card-bg: #ffffff;
+    --text-primary: #0f172a;
+    --text-muted: #64748b;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --ok: #16a34a;
+    --warn: #ef4444;
+    --border-color: #e2e8f0;
+    --secondary-bg: #475569;
+    --secondary-hover: #334152;
+    --present-bg: #dcfce7;
+    --present-text: #14532d;
+    --absent-bg: #fee2e2;
+    --absent-text: #991b1b;
+
+    --radius: 10px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color-scheme: light;
+}
+
+body.dark-mode {
+    --bg: #0f172a;
+    --card-bg: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border-color: #334152;
+    --secondary-bg: #334152;
+    --secondary-hover: #475569;
+    --present-bg: #14532d;
+    --present-text: #dcfce7;
+    --absent-bg: #991b1b;
+    --absent-text: #fee2e2;
+    color-scheme: dark;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    padding: 24px;
+    color: var(--text-primary);
+    transition: background 0.2s, color 0.2s;
+}
+
+.wrap { max-width: 1200px; margin: 0 auto; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+h1 { margin: 0; font-size: 24px; }
+.meta { color: var(--text-muted); font-size: 14px; }
+header > div:first-child {
+  width: 100%;
+}
+
+.card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    transition: background 0.2s, border-color 0.2s;
+}
+
+/* Controls & Actions */
+select, input[type=date], input[type=text] {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+button {
+    cursor: pointer;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+}
+button:active { transform: scale(0.97); }
+button:disabled { cursor: not-allowed; opacity: 0.6; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+button.accent { background: var(--accent); color: #fff; }
+button.accent:hover { background: var(--accent-hover); }
+button.secondary { background: var(--secondary-bg); color: #fff; }
+button.secondary:hover { background: var(--secondary-hover); }
+button.ghost {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+}
+button.ghost:hover { background: var(--border-color); color: var(--text-primary); }
+
+.controls, .grid-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.grid-controls { margin-top: 16px; }
+.actions, .pager, .toolbar, .grid-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.page-info { min-width: 110px; text-align: center; font-size: 14px; color: var(--text-muted); }
+
+/* Student Grid */
+#studentsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.student {
+    padding: 12px 8px;
+    border-radius: 8px;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 500;
+}
+.student.present { background: var(--present-bg); color: var(--present-text); }
+.student.absent { background: var(--absent-bg); color: var(--absent-text); }
+.student small { display: block; font-size: 12px; opacity: 0.8; margin-top: 4px; font-weight: 400; }
+
+/* Footer & Status Toast */
+.footer-meta {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+.toast {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+.toast.show { opacity: 1; visibility: visible; }
+.toast.ok { background: var(--ok); color: #fff; }
+.toast.error { background: var(--warn); color: #fff; }
+
+.hidden { display: none; }
+
+/* --- Mobile Swipe Enhancement Styles --- */
+@media (max-width: 768px) {
+    .student {
+        position: relative;
+        overflow: hidden;
+        padding: 0; /* Remove padding from the container */
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .student-content {
+        position: relative;
+        z-index: 2;
+        background: var(--card-bg);
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 12px 8px;
+        border-radius: 8px;
+        transition: transform 0.3s ease;
+    }
+
+    .student-content.swiping {
+        transition: none;
+    }
+    
+    .student.present .student-content { background: var(--present-bg); color: var(--present-text); }
+    .student.absent .student-content { background: var(--absent-bg); color: var(--absent-text); }
+
+    .swipe-action {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 50%;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .swipe-action-left {
+        left: 0;
+        background-color: var(--warn);
+    }
+
+    .swipe-action-right {
+        right: 0;
+        background-color: var(--ok);
+    }
+}

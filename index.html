@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Attendance Sheet</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="icon.jpg">
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
+  
+  <!-- App -->
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1 style="text-align:center"><strong>Attendance Sheet</strong></h1>
+        <div class="meta" style="text-align:center">
+          Better than <strong>ERP</strong> 😜<br>
+          <i>Click a student to mark as Absent.</i>
+        </div> 
+      </div>
+      <div class="toolbar">
+        <button id="themeToggle" class="ghost" aria-label="Toggle theme">☀️</button>
+        <label>Subject:
+          <select id="subject">
+            <option>THU101 - Professional Communication</option>
+            <option>TCH101 - Engineering Chemistry</option>
+            <option>TMA102 - Mathematics for AI-I</option>
+            <option>TCS102 - Introduction to Python Programming</option>
+            <option>TEC101 - Basic Electronics Engineering</option>
+          </select>
+        </label>
+        <label>Date: <input id="date" type="date"/></label>
+        <label>Section: <input id="section" type="text" value="G" style="width:60px"/></label>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="controls">
+        <div class="actions">
+          <button id="markAllPresent" class="secondary">Mark All Present</button>
+          <button id="markAllAbsent" class="secondary">Mark All Absent</button>
+          <button id="invert" class="ghost">Invert</button>
+        </div>
+        <div class="pager">
+          <label>Jump to roll number: 
+            <input id="jump" type="text" placeholder="e.g 29" style="width:70px"/>
+          </label>
+          <button id="prev" class="ghost">‹ Prev</button>
+          <div id="pageInfo" class="page-info"></div>
+          <button id="next" class="ghost">Next ›</button>
+        </div>
+      </div>
+
+      <div class="grid-controls">
+        <input id="search" type="text" placeholder="Search by roll number..." style="flex:1"/>
+        <div class="grid-actions">
+          <button id="saveLocal" class="ghost">Save Locally</button>
+          <button id="exportPDF" class="ghost">Export PDF</button>
+        </div>
+      </div>
+
+      <div id="studentsGrid" aria-live="polite"></div>
+
+      <div class="footer-meta">
+        <div class="meta">Showing <span id="showCount">0</span> students</div>
+        <div id="status" class="toast hidden"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
