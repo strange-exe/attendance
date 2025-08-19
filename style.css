@@ -1,6 +1,4 @@
-/* Google Font for a cleaner look */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
 :root {
     --bg: #f4f7fb;
     --card-bg: #ffffff;
@@ -17,7 +15,6 @@
     --present-text: #14532d;
     --absent-bg: #fee2e2;
     --absent-text: #991b1b;
-
     --radius: 10px;
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -64,7 +61,6 @@ header > div:first-child {
     transition: background 0.2s, border-color 0.2s;
 }
 
-/* Controls & Actions */
 select, input[type=date], input[type=text] {
     padding: 8px 12px;
     border-radius: 8px;
@@ -85,7 +81,6 @@ button {
 button:active { transform: scale(0.97); }
 button:disabled { cursor: not-allowed; opacity: 0.6; }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
 button.accent { background: var(--accent); color: #fff; }
 button.accent:hover { background: var(--accent-hover); }
 button.secondary { background: var(--secondary-bg); color: #fff; }
@@ -96,13 +91,11 @@ button.ghost {
     color: var(--text-muted);
 }
 button.ghost:hover { background: var(--border-color); color: var(--text-primary); }
-
 .controls, .grid-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
 .grid-controls { margin-top: 16px; }
 .actions, .pager, .toolbar, .grid-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .page-info { min-width: 110px; text-align: center; font-size: 14px; color: var(--text-muted); }
 
-/* Student Grid */
 #studentsGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -123,8 +116,6 @@ button.ghost:hover { background: var(--border-color); color: var(--text-primary)
 .student.present { background: var(--present-bg); color: var(--present-text); }
 .student.absent { background: var(--absent-bg); color: var(--absent-text); }
 .student small { display: block; font-size: 12px; opacity: 0.8; margin-top: 4px; font-weight: 400; }
-
-/* Footer & Status Toast */
 .footer-meta {
     margin-top: 16px;
     display: flex;
@@ -146,15 +137,12 @@ button.ghost:hover { background: var(--border-color); color: var(--text-primary)
 .toast.show { opacity: 1; visibility: visible; }
 .toast.ok { background: var(--ok); color: #fff; }
 .toast.error { background: var(--warn); color: #fff; }
-
 .hidden { display: none; }
-
-/* --- Mobile Swipe Enhancement Styles --- */
 @media (max-width: 768px) {
     .student {
         position: relative;
         overflow: hidden;
-        padding: 0; /* Remove padding from the container */
+        padding: 0;
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
