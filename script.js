@@ -298,6 +298,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const dataToExport = this.state.filteredRoster;
             const totalPagesExp = "{total_pages_count_string}";
+            // script.js
+            const toggleBtn = document.getElementById("themeToggle");
+            
+            toggleBtn.addEventListener("click", () => {
+              document.body.classList.toggle("light-mode");
+            });
+
 
             doc.autoTable({
                 startY: 58,
@@ -377,4 +384,5 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     App.init();
 });
+
 
