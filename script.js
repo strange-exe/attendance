@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
     const App = {
-        // --- CONFIGURATION ---
         config: {
             STUDENT_COUNT: 80,
             PAGE_SIZE: 16,
@@ -9,7 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
             SWIPE_THRESHOLD: 60,
         },
 
-        // --- STATE ---
         state: {
             roster: [],
             attendance: new Map(),
@@ -22,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
             isSwiping: false,
         },
 
-        // --- DOM ELEMENTS ---
         elements: {
             grid: document.getElementById("studentsGrid"),
             pageInfo: document.getElementById("pageInfo"),
@@ -36,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
             themeToggle: document.getElementById("themeToggle"),
         },
 
-        // --- INITIALIZATION ---
         init() {
             this.setupTheme();
             this.bindEventListeners();
@@ -60,7 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
             this.elements.themeToggle.textContent = isDark ? '☀️' : '🌙';
         },
 
-        // --- CORE LOGIC ---
         loadRoster() {
             const localRoster = localStorage.getItem(this.config.DEFAULT_ROSTER_KEY);
             if (localRoster) {
@@ -70,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     roll: i + 1,
                     name: `Student ${i + 1}`,
                 }));
-                // Save the generated roster for future use
                 localStorage.setItem(this.config.DEFAULT_ROSTER_KEY, JSON.stringify(this.state.roster));
             }
         },
@@ -106,7 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
             this.state.currentPage = 0;
         },
 
-        // --- RENDERING ---
         render() {
             const { currentPage, isMobile } = this.state;
             const { PAGE_SIZE } = this.config;
@@ -147,7 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
             this.elements.showCount.textContent = `${this.state.filteredRoster.length} (Absents: ${absentCount})`;
         },
 
-        // --- EVENT HANDLERS & ACTIONS ---
         bindEventListeners() {
             this.elements.grid.addEventListener('touchstart', e => this.handleTouchStart(e), { passive: true });
             this.elements.grid.addEventListener('touchmove', e => this.handleTouchMove(e), { passive: false });
@@ -198,7 +190,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         },
 
-        // --- SWIPE LOGIC ---
         handleTouchStart(e) {
             if (!this.state.isMobile) return;
             const studentEl = e.target.closest('.student');
@@ -238,7 +229,6 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { this.state.isSwiping = false; }, 100);
         },
         
-        // --- BULK/PAGE ACTIONS ---
         setAllStatus(status) {
             this.state.roster.forEach(s => this.state.attendance.set(s.roll, status));
             this.render();
@@ -292,7 +282,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // --- Title Section ---
             doc.setFont("helvetica", "bold");
             doc.setFontSize(20);
             doc.text("Attendance Sheet", doc.internal.pageSize.getWidth() / 2, 20, { align: "center" });
@@ -310,7 +299,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const dataToExport = this.state.filteredRoster;
             const totalPagesExp = "{total_pages_count_string}";
 
-            // --- Table ---
             doc.autoTable({
                 startY: 58,
                 head: [['Roll No.', 'Status']],
@@ -340,7 +328,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     const pageSize = doc.internal.pageSize;
                     const pageHeight = pageSize.height;
 
-                    // Footer: page numbers
                     doc.setFontSize(9);
                     doc.text(`Page ${data.pageNumber} of ${totalPagesExp}`,
                             pageSize.width - 10,
@@ -349,34 +336,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
 
-            // Replace page count placeholders
             if (typeof doc.putTotalPages === 'function') {
                 doc.putTotalPages(totalPagesExp);
             }
 
-            // --- ✅ Add summary ONLY on the last page ---
             const pageCount = doc.internal.getNumberOfPages();
             const pageSize = doc.internal.pageSize;
             const pageHeight = pageSize.height;
-
-            doc.setPage(pageCount); // move cursor to last page
-
+            doc.setPage(pageCount);
             const absentCount = [...this.state.attendance.values()].filter(v => v === "Absent").length;
             const presentCount = dataToExport.length - absentCount;
             const summaryText = `Attendance Summary: ${presentCount} Present  &  ${absentCount} Absent`;
-
             doc.setFontSize(11);
             doc.setTextColor(70);
             doc.setFont("helvetica", "bold");
-            doc.text(summaryText, 14, pageHeight - 10); // left side bottom
-            
-            // Save file
+            doc.text(summaryText, 14, pageHeight - 10);
             const timestamp = new Date().getTime();
             doc.save(`attendance_${sectionInput.value}_${dateInput.value}_${timestamp}.pdf`);
             this.showStatus("Beautifully formatted PDF exported successfully!", "ok");
         },
 
-        // --- UTILITIES ---
         showStatus(message, type = "ok") {
             const { status } = this.elements;
             status.textContent = message;
@@ -396,6 +375,5 @@ document.addEventListener("DOMContentLoaded", () => {
             URL.revokeObjectURL(url);
         },
     };
-
     App.init();
 });
