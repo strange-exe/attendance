@@ -298,9 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const dataToExport = this.state.filteredRoster;
             const totalPagesExp = "{total_pages_count_string}";
-            // script.js
             const toggleBtn = document.getElementById("themeToggle");
-            
             toggleBtn.addEventListener("click", () => {
               document.body.classList.toggle("light-mode");
             });
@@ -360,7 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
             doc.text(summaryText, 14, pageHeight - 10);
             const timestamp = new Date().getTime();
             doc.save(`Attendance_${sectionInput.value}_${dateInput.value}.pdf`);
-            this.showStatus("Beautifully formatted PDF exported successfully!", "ok");
+            this.showStatus("PDF exported successfully!", "ok");
         },
 
         showStatus(message, type = "ok") {
@@ -384,5 +382,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     App.init();
 });
+
 
 
