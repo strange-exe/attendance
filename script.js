@@ -352,7 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
             doc.setFont("helvetica", "bold");
             doc.text(summaryText, 14, pageHeight - 10);
             const timestamp = new Date().getTime();
-            doc.save(`attendance_${sectionInput.value}_${dateInput.value}_${timestamp}.pdf`);
+            doc.save(`Attendance_${sectionInput.value}_${dateInput.value}.pdf`);
             this.showStatus("Beautifully formatted PDF exported successfully!", "ok");
         },
 
@@ -377,3 +377,4 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     App.init();
 });
+
