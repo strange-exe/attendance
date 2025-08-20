@@ -18,7 +18,7 @@
   color-scheme: dark;
 }
 
-:body.light-mode {
+body.light-mode {
   --bg: #f4f7fb;
   --card-bg: #ffffff;
   --text-primary: #0f172a;
