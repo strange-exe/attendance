@@ -141,10 +141,12 @@ document.addEventListener("DOMContentLoaded", () => {
         },
 
         bindEventListeners() {
-            this.elements.grid.addEventListener('touchstart', e => this.handleTouchStart(e), { passive: true });
-            this.elements.grid.addEventListener('touchmove', e => this.handleTouchMove(e), { passive: false });
-            this.elements.grid.addEventListener('touchend', e => this.handleTouchEnd(e));
             this.elements.grid.addEventListener('click', e => this.handleTap(e));
+            if (this.state.isMobile) {
+                this.elements.grid.addEventListener('touchstart', e => this.handleTouchStart(e), { passive: true });
+                this.elements.grid.addEventListener('touchmove', e => this.handleTouchMove(e), { passive: false });
+                this.elements.grid.addEventListener('touchend', e => this.handleTouchEnd(e));
+            }
             this.elements.searchInput.addEventListener("input", () => {
                 this.filterRoster();
                 this.render();
@@ -169,6 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (newIsMobile !== this.state.isMobile) {
                     this.state.isMobile = newIsMobile;
                     this.render();
+                    this.bindEventListeners();
                 }
             });
         },
@@ -191,7 +194,6 @@ document.addEventListener("DOMContentLoaded", () => {
         },
 
         handleTouchStart(e) {
-            if (!this.state.isMobile) return;
             const studentEl = e.target.closest('.student');
             if (!studentEl) return;
             this.state.activeSwipeEl = studentEl.querySelector('.student-content');
@@ -201,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
 
         handleTouchMove(e) {
-            if (!this.state.activeSwipeEl || !this.state.isMobile) return;
+            if (!this.state.activeSwipeEl) return;
             this.state.touchCurrentX = e.touches[0].clientX;
             const deltaX = this.state.touchCurrentX - this.state.touchStartX;
             if (Math.abs(deltaX) > 10 && !this.state.isSwiping) {
@@ -214,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
 
         handleTouchEnd() {
-            if (!this.state.activeSwipeEl || !this.state.isMobile) return;
+            if (!this.state.activeSwipeEl) return;
             const deltaX = this.state.touchCurrentX - this.state.touchStartX;
             const roll = parseInt(this.state.activeSwipeEl.closest('.student').dataset.roll);
             if (Math.abs(deltaX) > this.config.SWIPE_THRESHOLD) {
@@ -298,11 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const dataToExport = this.state.filteredRoster;
             const totalPagesExp = "{total_pages_count_string}";
-            const toggleBtn = document.getElementById("themeToggle");
-            toggleBtn.addEventListener("click", () => {
-              document.body.classList.toggle("light-mode");
-            });
-
 
             doc.autoTable({
                 startY: 58,
@@ -356,7 +353,6 @@ document.addEventListener("DOMContentLoaded", () => {
             doc.setTextColor(70);
             doc.setFont("helvetica", "bold");
             doc.text(summaryText, 14, pageHeight - 10);
-            const timestamp = new Date().getTime();
             doc.save(`Attendance_${sectionInput.value}_${dateInput.value}.pdf`);
             this.showStatus("PDF exported successfully!", "ok");
         },
@@ -366,22 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
             status.textContent = message;
             status.className = `toast show ${type}`;
             setTimeout(() => status.classList.remove("show"), 3000);
-        },
-
-        downloadBlob(content, filename, type) {
-            const blob = new Blob([content], { type });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        },
+        }
     };
     App.init();
 });
-
-
-
