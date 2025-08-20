@@ -39,6 +39,10 @@
     </header>
 
     <div class="card">
+      <div id="summaryBar" class="summary-bar">
+        Total: 0 | Present: 0 | Absent: 0
+      </div>
+
       <div class="controls">
         <div class="actions">
           <button id="markAllPresent" class="secondary">Mark All Present</button>
@@ -59,11 +63,16 @@
         <input id="search" type="text" placeholder="Search by roll number..." style="flex:1"/>
         <div class="grid-actions">
           <button id="saveLocal" class="ghost">Save Locally</button>
+          <button id="exportCSV" class="ghost">Export CSV</button>
           <button id="exportPDF" class="ghost">Export PDF</button>
         </div>
       </div>
 
       <div id="studentsGrid" aria-live="polite"></div>
+      <div class="quick-roll">
+        <h3>Absent Students</h3>
+        <div id="quickRoll" class="quick-roll-list">None</div>
+      </div>
 
       <div class="footer-meta">
         <div class="meta">Showing <span id="showCount">0</span> students</div>
@@ -73,4 +82,3 @@
   </div>
 </body>
 </html>
-
