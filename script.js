@@ -57,8 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.state.roster = JSON.parse(localRoster);
             } else {
                 this.state.roster = Array.from({ length: this.config.STUDENT_COUNT }, (_, i) => ({
-                    roll: i + 1,
-                    name: `Student ${i + 1}`,
+                    roll: i + 1
                 }));
                 localStorage.setItem(this.config.DEFAULT_ROSTER_KEY, JSON.stringify(this.state.roster));
             }
@@ -111,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 el.dataset.roll = student.roll;
                 el.role = "button";
                 el.tabIndex = 0;
-                el.innerHTML = `<strong>#${student.roll}</strong><small>${student.name}</small>`;
+                el.innerHTML = `<strong>#${student.roll}</strong>`;
                 fragment.appendChild(el);
             });
             this.elements.grid.appendChild(fragment);
@@ -124,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
             this.elements.summaryBar.textContent = `Total: ${total} | Present: ${present} | Absent: ${absent}`;
             this.elements.quickRoll.innerHTML = [...this.state.attendance.entries()]
                 .filter(([_, status]) => status === "Absent")
-                .map(([roll]) => `#${roll} - ${this.state.roster.find(s => s.roll === roll)?.name || ""}`)
+                .map(([roll]) => `#${roll}`)
                 .join("<br>");
         },
 
@@ -197,9 +196,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         exportCSV() {
             const date = this.elements.dateInput.value;
-            let csv = "Roll,Name,Status\n";
+            let csv = "Roll,Status\n";
             this.state.roster.forEach(s => {
-                csv += `${s.roll},${s.name},${this.state.attendance.get(s.roll) || "Present"}\n`;
+                csv += `${s.roll},${this.state.attendance.get(s.roll) || "Present"}\n`;
             });
             const blob = new Blob([csv], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
@@ -219,4 +218,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
     App.init();
 });
-
