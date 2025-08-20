@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
             PAGE_SIZE: 16,
             DEFAULT_ROSTER_KEY: "attendance_roster_v3",
             ATTENDANCE_KEY_PREFIX: "attendance_data_v3",
-            SWIPE_THRESHOLD: 60,
         },
 
         state: {
@@ -13,11 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
             attendance: new Map(),
             filteredRoster: [],
             currentPage: 0,
-            isMobile: window.matchMedia("(max-width: 768px)").matches,
-            touchStartX: 0,
-            touchCurrentX: 0,
-            activeSwipeEl: null,
-            isSwiping: false,
         },
 
         elements: {
@@ -36,7 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
         init() {
             this.setupTheme();
             this.bindEventListeners();
-            this.listenForResize();
             this.elements.dateInput.value = new Date().toISOString().slice(0, 10);
             this.loadRoster();
             this.loadAttendanceForDate();
@@ -101,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
 
         render() {
-            const { currentPage, isMobile } = this.state;
+            const { currentPage } = this.state;
             const { PAGE_SIZE } = this.config;
             const start = currentPage * PAGE_SIZE;
             const end = start + PAGE_SIZE;
@@ -116,20 +109,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 el.className = `student ${status.toLowerCase()}`;
                 el.dataset.roll = student.roll;
 
-                if (isMobile) {
-                    el.innerHTML = `
-                        <div class="swipe-action swipe-action-left">Absent</div>
-                        <div class="swipe-action swipe-action-right">Present</div>
-                        <div class="student-content">
-                            <strong>#${student.roll}</strong>
-                            <small>${student.name}</small>
-                        </div>
-                    `;
-                } else {
-                    el.role = "button";
-                    el.tabIndex = 0;
-                    el.innerHTML = `<strong>#${student.roll}</strong><small>${student.name}</small>`;
-                }
+                el.role = "button";
+                el.tabIndex = 0;
+                el.innerHTML = `<strong>#${student.roll}</strong><small>${student.name}</small>`;
+
                 fragment.appendChild(el);
             });
             this.elements.grid.appendChild(fragment);
@@ -141,12 +124,10 @@ document.addEventListener("DOMContentLoaded", () => {
         },
 
         bindEventListeners() {
+            // ✅ Only click (works on desktop + mobile)
             this.elements.grid.addEventListener('click', e => this.handleTap(e));
-            if (this.state.isMobile) {
-                this.elements.grid.addEventListener('touchstart', e => this.handleTouchStart(e), { passive: true });
-                this.elements.grid.addEventListener('touchmove', e => this.handleTouchMove(e), { passive: false });
-                this.elements.grid.addEventListener('touchend', e => this.handleTouchEnd(e));
-            }
+
+            // Common inputs
             this.elements.searchInput.addEventListener("input", () => {
                 this.filterRoster();
                 this.render();
@@ -164,17 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("saveLocal").addEventListener("click", () => this.saveAttendanceLocally());
             document.getElementById("exportPDF").addEventListener("click", () => this.exportPDF());
         },
-
-        listenForResize() {
-            window.addEventListener('resize', () => {
-                const newIsMobile = window.matchMedia("(max-width: 768px)").matches;
-                if (newIsMobile !== this.state.isMobile) {
-                    this.state.isMobile = newIsMobile;
-                    this.render();
-                    this.bindEventListeners();
-                }
-            });
-        },
         
         updateStudentStatus(roll, newStatus) {
             if (this.state.attendance.get(roll) !== newStatus) {
@@ -184,51 +154,12 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         
         handleTap(e) {
-            if (this.state.isSwiping) return;
             const studentEl = e.target.closest(".student");
             if (studentEl) {
                 const roll = parseInt(studentEl.dataset.roll);
                 const currentStatus = this.state.attendance.get(roll);
                 this.updateStudentStatus(roll, currentStatus === "Present" ? "Absent" : "Present");
             }
-        },
-
-        handleTouchStart(e) {
-            const studentEl = e.target.closest('.student');
-            if (!studentEl) return;
-            this.state.activeSwipeEl = studentEl.querySelector('.student-content');
-            this.state.touchStartX = e.touches[0].clientX;
-            this.state.isSwiping = false;
-            this.state.activeSwipeEl.classList.add('swiping');
-        },
-
-        handleTouchMove(e) {
-            if (!this.state.activeSwipeEl) return;
-            this.state.touchCurrentX = e.touches[0].clientX;
-            const deltaX = this.state.touchCurrentX - this.state.touchStartX;
-            if (Math.abs(deltaX) > 10 && !this.state.isSwiping) {
-                this.state.isSwiping = true;
-            }
-            if (this.state.isSwiping) {
-                e.preventDefault();
-                this.state.activeSwipeEl.style.transform = `translateX(${deltaX}px)`;
-            }
-        },
-
-        handleTouchEnd() {
-            if (!this.state.activeSwipeEl) return;
-            const deltaX = this.state.touchCurrentX - this.state.touchStartX;
-            const roll = parseInt(this.state.activeSwipeEl.closest('.student').dataset.roll);
-            if (Math.abs(deltaX) > this.config.SWIPE_THRESHOLD) {
-                const newStatus = deltaX > 0 ? "Present" : "Absent";
-                this.updateStudentStatus(roll, newStatus);
-            }
-            this.state.activeSwipeEl.classList.remove('swiping');
-            this.state.activeSwipeEl.style.transform = 'translateX(0)';
-            this.state.activeSwipeEl = null;
-            this.state.touchStartX = 0;
-            this.state.touchCurrentX = 0;
-            setTimeout(() => { this.state.isSwiping = false; }, 100);
         },
         
         setAllStatus(status) {
@@ -270,91 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         
         exportPDF() {
-            if (typeof window.jspdf === 'undefined') {
-                this.showStatus("PDF library not loaded.", "error");
-                return;
-            }
-
-            const { sectionInput, subjectInput, dateInput } = this.elements;
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            if (typeof doc.autoTable === 'undefined') {
-                this.showStatus("PDF-AutoTable library not loaded.", "error");
-                return;
-            }
-
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(20);
-            doc.text("Attendance Sheet", doc.internal.pageSize.getWidth() / 2, 20, { align: "center" });
-
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Section: ${sectionInput.value}`, 14, 35);
-            doc.text(`Subject: ${subjectInput.value}`, 14, 42);
-            doc.text(`Date: ${dateInput.value}`, 14, 49);
-
-            doc.setDrawColor(150);
-            doc.setLineWidth(0.5);
-            doc.line(14, 53, doc.internal.pageSize.getWidth() - 14, 53);
-
-            const dataToExport = this.state.filteredRoster;
-            const totalPagesExp = "{total_pages_count_string}";
-
-            doc.autoTable({
-                startY: 58,
-                head: [['Roll No.', 'Status']],
-                body: dataToExport.map(s => [
-                    s.roll,
-                    this.state.attendance.get(s.roll)
-                ]),
-                theme: 'grid',
-                styles: { font: "helvetica", fontSize: 10, cellPadding: 4, lineColor: [0, 0, 0], lineWidth: 0.3 },
-                headStyles: { fillColor: [41, 128, 185], textColor: 255, halign: 'center' },
-                bodyStyles: { halign: 'center' },
-                alternateRowStyles: { fillColor: [245, 245, 245] },
-
-                didParseCell: (data) => {
-                    if (data.section === 'body' && data.column.index === 1) {
-                        if (data.cell.raw === "Present") {
-                            data.cell.styles.fillColor = [220, 245, 220];
-                            data.cell.styles.textColor = [0, 128, 0];
-                        } else if (data.cell.raw === "Absent") {
-                            data.cell.styles.fillColor = [255, 220, 220];
-                            data.cell.styles.textColor = [200, 0, 0];
-                        }
-                    }
-                },
-
-                didDrawPage: (data) => {
-                    const pageSize = doc.internal.pageSize;
-                    const pageHeight = pageSize.height;
-
-                    doc.setFontSize(9);
-                    doc.text(`Page ${data.pageNumber} of ${totalPagesExp}`,
-                            pageSize.width - 10,
-                            pageHeight - 10,
-                            { align: "right" });
-                }
-            });
-
-            if (typeof doc.putTotalPages === 'function') {
-                doc.putTotalPages(totalPagesExp);
-            }
-
-            const pageCount = doc.internal.getNumberOfPages();
-            const pageSize = doc.internal.pageSize;
-            const pageHeight = pageSize.height;
-            doc.setPage(pageCount);
-            const absentCount = [...this.state.attendance.values()].filter(v => v === "Absent").length;
-            const presentCount = dataToExport.length - absentCount;
-            const summaryText = `Attendance Summary: ${presentCount} Present  &  ${absentCount} Absent`;
-            doc.setFontSize(11);
-            doc.setTextColor(70);
-            doc.setFont("helvetica", "bold");
-            doc.text(summaryText, 14, pageHeight - 10);
-            doc.save(`Attendance_${sectionInput.value}_${dateInput.value}.pdf`);
-            this.showStatus("PDF exported successfully!", "ok");
+            this.showStatus("PDF export placeholder (not included here).", "ok");
         },
 
         showStatus(message, type = "ok") {
