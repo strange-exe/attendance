@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
             grid: document.getElementById("studentsGrid"),
             pageInfo: document.getElementById("pageInfo"),
             showCount: document.getElementById("showCount"),
+            summaryBar: document.getElementById("summaryBar"),
+            quickRoll: document.getElementById("quickRoll"), 
             status: document.getElementById("status"),
             dateInput: document.getElementById("date"),
             sectionInput: document.getElementById("section"),
@@ -38,15 +40,15 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         
         setupTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.body.classList.toggle('dark-mode', savedTheme === 'dark');
-            this.elements.themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            document.body.classList.add("dark-mode");
+            localStorage.setItem("theme", "dark");
+            this.elements.themeToggle.textContent = "☀️";
         },
         
         toggleTheme() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            this.elements.themeToggle.textContent = isDark ? '☀️' : '🌙';
+            const isDark = document.body.classList.toggle("dark-mode");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            this.elements.themeToggle.textContent = isDark ? "☀️" : "🌙";
         },
 
         loadRoster() {
@@ -90,7 +92,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     String(s.roll).includes(query)
                 );
             }
-            this.state.currentPage = 0;
         },
 
         render() {
@@ -106,28 +107,30 @@ document.addEventListener("DOMContentLoaded", () => {
             pageItems.forEach(student => {
                 const status = this.state.attendance.get(student.roll) || "Present";
                 const el = document.createElement("div");
-                el.className = `student ${status.toLowerCase()}`;
+                el.className = `student ${status.toLowerCase()} animate`;
                 el.dataset.roll = student.roll;
-
                 el.role = "button";
                 el.tabIndex = 0;
                 el.innerHTML = `<strong>#${student.roll}</strong><small>${student.name}</small>`;
-
                 fragment.appendChild(el);
             });
             this.elements.grid.appendChild(fragment);
 
             const totalPages = Math.max(1, Math.ceil(this.state.filteredRoster.length / PAGE_SIZE));
             this.elements.pageInfo.textContent = `Page ${currentPage + 1} / ${totalPages}`;
-            const absentCount = [...this.state.attendance.values()].filter(v => v === "Absent").length;
-            this.elements.showCount.textContent = `${this.state.filteredRoster.length} (Absents: ${absentCount})`;
+            const total = this.state.roster.length;
+            const absent = [...this.state.attendance.values()].filter(v => v === "Absent").length;
+            const present = total - absent;
+            this.elements.summaryBar.textContent = `Total: ${total} | Present: ${present} | Absent: ${absent}`;
+            this.elements.quickRoll.innerHTML = [...this.state.attendance.entries()]
+                .filter(([_, status]) => status === "Absent")
+                .map(([roll]) => `#${roll} - ${this.state.roster.find(s => s.roll === roll)?.name || ""}`)
+                .join("<br>");
         },
 
         bindEventListeners() {
-            // ✅ Only click (works on desktop + mobile)
-            this.elements.grid.addEventListener('click', e => this.handleTap(e));
+            this.elements.grid.addEventListener("click", e => this.handleTap(e));
 
-            // Common inputs
             this.elements.searchInput.addEventListener("input", () => {
                 this.filterRoster();
                 this.render();
@@ -143,14 +146,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (e.key === "Enter") this.jumpToRoll();
             });
             document.getElementById("saveLocal").addEventListener("click", () => this.saveAttendanceLocally());
-            document.getElementById("exportPDF").addEventListener("click", () => this.exportPDF());
+            document.getElementById("exportCSV").addEventListener("click", () => this.exportCSV());
         },
         
         updateStudentStatus(roll, newStatus) {
-            if (this.state.attendance.get(roll) !== newStatus) {
-                this.state.attendance.set(roll, newStatus);
-                this.render();
-            }
+            this.state.attendance.set(roll, newStatus);
+            this.render();
         },
         
         handleTap(e) {
@@ -161,11 +162,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.updateStudentStatus(roll, currentStatus === "Present" ? "Absent" : "Present");
             }
         },
-        
+
         setAllStatus(status) {
             this.state.roster.forEach(s => this.state.attendance.set(s.roll, status));
             this.render();
-            this.showStatus(`All students marked as ${status}`, "ok");
         },
 
         invertSelection() {
@@ -174,42 +174,49 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.state.attendance.set(s.roll, current === "Present" ? "Absent" : "Present");
             });
             this.render();
-            this.showStatus("Selection inverted", "ok");
         },
 
-        changePage(direction) {
-            const { currentPage, filteredRoster } = this.state;
-            const { PAGE_SIZE } = this.config;
-            const totalPages = Math.ceil(filteredRoster.length / PAGE_SIZE);
-            const newPage = currentPage + direction;
-            if (newPage >= 0 && newPage < totalPages) {
-                this.state.currentPage = newPage;
-                this.render();
-            }
+        changePage(dir) {
+            const totalPages = Math.max(1, Math.ceil(this.state.filteredRoster.length / this.config.PAGE_SIZE));
+            this.state.currentPage = Math.max(0, Math.min(this.state.currentPage + dir, totalPages - 1));
+            this.render();
         },
-        
+
         jumpToRoll() {
             const roll = parseInt(this.elements.jumpInput.value);
             if (isNaN(roll)) return;
             const index = this.state.filteredRoster.findIndex(s => s.roll === roll);
-            if (index === -1) {
-                return this.showStatus("Roll number not found in current filter.", "error");
+            if (index >= 0) {
+                this.state.currentPage = Math.floor(index / this.config.PAGE_SIZE);
+                this.render();
+                const el = this.elements.grid.querySelector(`[data-roll="${roll}"]`);
+                if (el) el.classList.add("highlight");
+                setTimeout(() => el?.classList.remove("highlight"), 1500);
             }
-            this.state.currentPage = Math.floor(index / this.config.PAGE_SIZE);
-            this.render();
-            this.elements.jumpInput.value = '';
-        },
-        
-        exportPDF() {
-            this.showStatus("PDF export placeholder (not included here).", "ok");
         },
 
-        showStatus(message, type = "ok") {
-            const { status } = this.elements;
-            status.textContent = message;
-            status.className = `toast show ${type}`;
-            setTimeout(() => status.classList.remove("show"), 3000);
+        exportCSV() {
+            const date = this.elements.dateInput.value;
+            let csv = "Roll,Name,Status\n";
+            this.state.roster.forEach(s => {
+                csv += `${s.roll},${s.name},${this.state.attendance.get(s.roll) || "Present"}\n`;
+            });
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `attendance_${date}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        },
+
+        showStatus(msg, type) {
+            this.elements.status.textContent = msg;
+            this.elements.status.className = type;
+            setTimeout(() => this.elements.status.textContent = "", 3000);
         }
     };
+
     App.init();
 });
+
