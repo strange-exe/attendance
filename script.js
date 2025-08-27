@@ -2,9 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const App = {
         config: {
             STUDENT_COUNT: 80,
-            PAGE_SIZE: 16,
-            DEFAULT_ROSTER_KEY: "attendance_roster_v3",
-            ATTENDANCE_KEY_PREFIX: "attendance_data_v3",
+            PAGE_SIZE: 20,
+            DEFAULT_ROSTER_KEY: "att_",
+            ATTENDANCE_KEY_PREFIX: "attendance_",
         },
 
         state: {
@@ -218,3 +218,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
     App.init();
 });
+
